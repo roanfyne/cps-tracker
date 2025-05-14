@@ -22,6 +22,7 @@
       align-items: center;
       height: 100vh;
       margin: 0;
+      overflow: hidden; /* Prevent scrollbars for random image positions */
     }
 
     .container {
@@ -32,6 +33,7 @@
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
       max-width: 400px;
       width: 90%;
+      position: relative;
     }
 
     h1 {
@@ -79,14 +81,30 @@
       font-weight: bold;
       color: #2e7d32; /* Dark green */
     }
+
+    .floating-image {
+      position: absolute;
+      width: 60px;
+      height: auto;
+      z-index: 999;
+      pointer-events: none; /* Prevent interaction with the image */
+    }
+
+    .floating-link {
+      position: absolute;
+      z-index: 999;
+      font-size: 1rem;
+      color: #2e7d32; /* Dark green */
+      text-decoration: underline;
+    }
   </style>
 </head>
 
 <body>
   <div class="container">
     <h1>CPS Tracker</h1>
-    <p>Click the button as many times as you can in 10 seconds!</p>
-    <button id="start-button" onclick="startTest()">Click Me!</button>
+    <p>Click the button or press the spacebar as many times as you can in 10 seconds!</p>
+    <button id="start-button" onclick="handleClick()">Click Me!</button>
     <div class="results" id="results" style="display: none;">
       <p>Total Clicks: <span id="total-clicks"></span></p>
       <p>Clicks Per Second: <span id="cps"></span></p>
@@ -97,6 +115,11 @@
   <script>
     let clickCount = 0;
     let isRunning = false;
+    let buttonElement;
+    const image1Src = "images/isee.png";
+    const image2Src = "images/help.png";
+    const image3Src = "images/greenmouse.png";
+    const redirectUrl = "https://sites.google.com/pleasantonusd.net/53xx-unblocked-games/were-are-you";
 
     function startTest() {
       if (isRunning) return; // Prevent multiple tests at the same time
@@ -114,16 +137,9 @@
       startButton.innerText = "Click Me!";
       resultsDiv.style.display = "none";
 
-      // Add click event listener to the button
-      const clickHandler = () => {
-        clickCount++;
-      };
-      startButton.addEventListener("click", clickHandler);
-
       // Start the 10-second timer
       setTimeout(() => {
         isRunning = false;
-        startButton.removeEventListener("click", clickHandler); // Remove click listener
 
         // Calculate results
         const clicksPerSecond = Math.round(clickCount / 10);
@@ -139,7 +155,72 @@
         startButton.innerText = "Start Again";
       }, 10000); // 10 seconds
     }
+
+    function handleClick() {
+      if (!isRunning) {
+        startTest();
+        return;
+      }
+
+      clickCount++;
+
+      // Generate random probabilities for events
+      const randomEvent = Math.random();
+      if (randomEvent <= 0.007) {
+        createRandomImage(image1Src); // 0.7% chance
+      } else if (randomEvent <= 0.009) {
+        createRandomImage(image2Src); // 0.2% chance
+      } else if (randomEvent <= 0.0092) {
+        window.location.href = redirectUrl; // 0.02% chance
+      } else {
+        createRandomImage(image3Src); // Default image
+      }
+    }
+
+    function createRandomImage(src) {
+      const img = document.createElement("img");
+      img.src = src;
+      img.className = "floating-image";
+
+      // Calculate random position
+      const container = document.querySelector(".container");
+      const buttonRect = buttonElement.getBoundingClientRect();
+
+      let randomX, randomY;
+      do {
+        randomX = Math.floor(Math.random() * (window.innerWidth - 100));
+        randomY = Math.floor(Math.random() * (window.innerHeight - 100));
+      } while (
+        randomX > buttonRect.left - 100 &&
+        randomX < buttonRect.right + 100 &&
+        randomY > buttonRect.top - 100 &&
+        randomY < buttonRect.bottom + 100
+      );
+
+      img.style.left = `${randomX}px`;
+      img.style.top = `${randomY}px`;
+      document.body.appendChild(img);
+
+      // Remove the image after 1 second
+      setTimeout(() => {
+        img.remove();
+      }, 1000);
+    }
+
+    // Set up spacebar and click handlers
+    document.addEventListener("keydown", (event) => {
+      if (event.code === "Space") {
+        event.preventDefault();
+        handleClick();
+      }
+    });
+
+    document.addEventListener("DOMContentLoaded", () => {
+      buttonElement = document.getElementById("start-button");
+    });
   </script>
 </body>
+
+</html>
 
 </html>
